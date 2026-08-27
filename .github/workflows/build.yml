@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - principal
+      - main
 
 jobs:
   build:
@@ -19,15 +19,24 @@ jobs:
           mkdir proyecto
           unzip -q RouterMacApp_compilable.zip -d proyecto
 
-      - name: Revisar contenido del ZIP
-        run: |
-          echo "=== CONTENIDO DEL ZIP ==="
-          find proyecto -maxdepth 5 -type f | sort
-          echo "=== ARCHIVOS GRADLE ==="
-          find proyecto -type f \( -name "gradlew" -o -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle" -o -name "settings.gradle.kts" \) -print
-
       - name: Configurar Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Compilar APK
+        run: |
+          cd proyecto
+          gradle assembleDebug --stacktrace
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK
+          path: 'proyecto/**/build/outputs/apk/**/*.apk'
