@@ -19,30 +19,15 @@ jobs:
           mkdir proyecto
           unzip -q RouterMacApp_compilable.zip -d proyecto
 
-      - name: Buscar Gradle
+      - name: Revisar contenido del ZIP
         run: |
-          GRADLEW=$(find proyecto -name gradlew -type f | head -1)
-          if [ -z "$GRADLEW" ]; then
-            echo "No se encontró gradlew dentro del ZIP"
-            exit 1
-          fi
-          chmod +x "$GRADLEW"
-          echo "GRADLEW=$GRADLEW" >> $GITHUB_ENV
+          echo "=== CONTENIDO DEL ZIP ==="
+          find proyecto -maxdepth 5 -type f | sort
+          echo "=== ARCHIVOS GRADLE ==="
+          find proyecto -type f \( -name "gradlew" -o -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle" -o -name "settings.gradle.kts" \) -print
 
       - name: Configurar Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Compilar APK
-        run: |
-          DIR=$(dirname "$GRADLEW")
-          cd "$DIR"
-          ./gradlew assembleDebug --stacktrace
-
-      - name: Guardar APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: APK
-          path: '**/build/outputs/apk/**/*.apk'
